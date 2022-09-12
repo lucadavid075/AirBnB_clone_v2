@@ -2,6 +2,7 @@
 """ Console Module """
 import cmd
 import sys
+import shlex
 from models.base_model import BaseModel
 from models.__init__ import storage
 from models.user import User
@@ -19,16 +20,16 @@ class HBNBCommand(cmd.Cmd):
     prompt = '(hbnb) ' if sys.__stdin__.isatty() else ''
 
     classes = {
-               'BaseModel': BaseModel, 'User': User, 'Place': Place,
-               'State': State, 'City': City, 'Amenity': Amenity,
-               'Review': Review
-              }
+        'BaseModel': BaseModel, 'User': User, 'Place': Place,
+        'State': State, 'City': City, 'Amenity': Amenity,
+        'Review': Review
+    }
     dot_cmds = ['all', 'count', 'show', 'destroy', 'update']
     types = {
-             'number_rooms': int, 'number_bathrooms': int,
-             'max_guest': int, 'price_by_night': int,
-             'latitude': float, 'longitude': float
-            }
+        'number_rooms': int, 'number_bathrooms': int,
+        'max_guest': int, 'price_by_night': int,
+        'latitude': float, 'longitude': float
+    }
 
     def preloop(self):
         """Prints if isatty is false"""
@@ -73,7 +74,7 @@ class HBNBCommand(cmd.Cmd):
                 pline = pline[2].strip()  # pline is now str
                 if pline:
                     # check for *args or **kwargs
-                    if pline[0] is '{' and pline[-1] is'}'\
+                    if pline[0] is '{' and pline[-1] is '}'\
                             and type(eval(pline)) is dict:
                         _args = pline
                     else:
@@ -115,13 +116,32 @@ class HBNBCommand(cmd.Cmd):
 
     def do_create(self, args):
         """ Create an object of any class"""
-        if not args:
+        new = args.partition(" ")
+        c_name = new[0]
+        if not c_name:
             print("** class name missing **")
             return
-        elif args not in HBNBCommand.classes:
+        elif c_name not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
-        new_instance = HBNBCommand.classes[args]()
+        params = new[2].split(' ')
+        createdic = {}
+        for elem in params:
+            param = elem.partition('=')
+            if (hasattr(HBNBCommand.classes[c_name], param[0])):
+                if (param[2] and '"' in param[2]):
+                    newstr = param[2][1:-1]
+                    newstr = newstr.replace('_', ' ')
+                    print(newstr)
+                    createdic[param[0]] = newstr
+                elif (param[2] and '"' not in param[2]):
+                    createdic[param[0]] = int(param[2])
+                elif (param[2] and '"' not in param[2] and '.' in param[2]):
+                    createdic[param[0]] = float(param[2])
+        new_instance = HBNBCommand.classes[c_name]()
+        if createdic != {}:
+            for k, v in createdic.items():
+                setattr(new_instance, k, v)
         storage.save()
         print(new_instance.id)
         storage.save()
@@ -319,6 +339,7 @@ class HBNBCommand(cmd.Cmd):
         """ Help information for the update class """
         print("Updates an object with new information")
         print("Usage: update <className> <id> <attName> <attVal>\n")
+
 
 if __name__ == "__main__":
     HBNBCommand().cmdloop()
