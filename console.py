@@ -132,16 +132,15 @@ class HBNBCommand(cmd.Cmd):
                 if (param[2] and '"' in param[2]):
                     newstr = param[2][1:-1]
                     newstr = newstr.replace('_', ' ')
-                    print(newstr)
                     createdic[param[0]] = newstr
                 elif (param[2] and '"' not in param[2]):
                     createdic[param[0]] = int(param[2])
                 elif (param[2] and '"' not in param[2] and '.' in param[2]):
                     createdic[param[0]] = float(param[2])
-        new_instance = HBNBCommand.classes[c_name]()
-        if createdic != {}:
-            for k, v in createdic.items():
-                setattr(new_instance, k, v)
+        new_instance = HBNBCommand.classes[c_name](**createdic)
+        # if createdic != {}:
+        #     for k, v in createdic.items():
+        #         setattr(new_instance, k, v)
         storage.save()
         print(new_instance.id)
         storage.save()

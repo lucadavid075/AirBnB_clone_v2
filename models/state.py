@@ -12,6 +12,7 @@ class State(BaseModel, Base):
     cities = relationship("City")
 
     def __init__(self, *args, **kwargs):
+        """Instatntiates a new model"""
         from models.city import City
         super().__init__(*args, **kwargs)
 
