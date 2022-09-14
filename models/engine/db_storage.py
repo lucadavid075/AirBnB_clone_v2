@@ -13,11 +13,11 @@ class DBStorage:
         from sqlalchemy import (create_engine)
         from models.base_model import Base, BaseModel
         from models.user import User
-        from models.place import Place
         from models.state import State
         from models.city import City
-        from models.amenity import Amenity
+        from models.place import Place
         from models.review import Review
+        from models.amenity import Amenity
         self.__engine = create_engine('mysql+mysqldb://{}:{}@{}/{}'.format(
             os.getenv('HBNB_MYSQL_USER'), os.getenv('HBNB_MYSQL_PWD'),
             os.getenv('HBNB_MYSQL_HOST'), os.getenv('HBNB_MYSQL_DB')),
