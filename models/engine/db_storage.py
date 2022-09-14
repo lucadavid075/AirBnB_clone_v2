@@ -37,28 +37,28 @@ class DBStorage:
         new_dict = {}
         if cls is None:
             for item in self.__session.query(User).all():
-                key = User.__class__.__name__ + '.' + item.id
+                key = item.__class__.__name__ + '.' + item.id
                 new_dict[key] = item
             for item in self.__session.query(State).all():
-                key = State.__class__.__name__ + '.' + item.id
+                key = item.__class__.__name__ + '.' + item.id
                 new_dict[key] = item
             for item in self.__session.query(City).all():
-                key = City.__class__.__name__ + '.' + item.id
+                key = item.__class__.__name__ + '.' + item.id
                 new_dict[key] = item
             for item in self.__session.query(Amenity).all():
-                key = Amenity.__class__.__name__ + '.' + item.id
+                key = item.__class__.__name__ + '.' + item.id
                 new_dict[key] = item
             for item in self.__session.query(Place).all():
-                key = Place.__class__.__name__ + '.' + item.id
+                key = item.__class__.__name__ + '.' + item.id
                 new_dict[key] = item
             for item in self.__session.query(Review).all():
-                key = Review.__class__.__name__ + '.' + item.id
+                key = item.__class__.__name__ + '.' + item.id
                 new_dict[key] = item
         else:
             for item in self.__session.query(cls).all():
-                key = cls.__class__.__name__ + '.' + item.id
+                key = "{}.{}".format(item.__class__.__name__,  item.id)
                 new_dict[key] = item
-        # self.__session.close()
+        self.__session.close()
         return new_dict
 
     def new(self, obj):

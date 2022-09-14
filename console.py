@@ -2,8 +2,6 @@
 """ Console Module """
 import cmd
 import os
-import sys
-import shlex
 from models.base_model import BaseModel
 from models.__init__ import storage
 from models.user import User
@@ -18,7 +16,7 @@ class HBNBCommand(cmd.Cmd):
     """ Contains the functionality for the HBNB console"""
 
     # determines prompt for interactive/non-interactive modes
-    prompt = '(hbnb) ' if sys.__stdin__.isatty() else ''
+    prompt = '(hbnb) '  # if sys.__stdin__.isatty() else ''
 
     classes = {
         'BaseModel': BaseModel, 'User': User, 'Place': Place,
@@ -32,10 +30,10 @@ class HBNBCommand(cmd.Cmd):
         'latitude': float, 'longitude': float
     }
 
-    def preloop(self):
-        """Prints if isatty is false"""
-        if not sys.__stdin__.isatty():
-            print('(hbnb)')
+    # def preloop(self):
+    #     """Prints if isatty is false"""
+    #     if not sys.__stdin__.isatty():
+    #         print('(hbnb)')
 
     def precmd(self, line):
         """Reformat command line for advanced command syntax.
@@ -90,13 +88,15 @@ class HBNBCommand(cmd.Cmd):
 
     def postcmd(self, stop, line):
         """Prints if isatty is false"""
-        if not sys.__stdin__.isatty():
-            print('(hbnb) ', end='')
         return stop
+
+    def postloop(self):
+        """end on a newline"""
+        print()
 
     def do_quit(self, command):
         """ Method to exit the HBNB console"""
-        exit()
+        return True
 
     def help_quit(self):
         """ Prints the help documentation for quit  """
@@ -104,8 +104,7 @@ class HBNBCommand(cmd.Cmd):
 
     def do_EOF(self, arg):
         """ Handles EOF to exit program """
-        print()
-        exit()
+        return True
 
     def help_EOF(self):
         """ Prints the help documentation for EOF """
@@ -137,12 +136,11 @@ class HBNBCommand(cmd.Cmd):
                 elif (param[2] and '"' not in param[2] and '.' not
                       in param[2]):
                     createdic[param[0]] = int(param[2])
-                elif (param[2] and '"' not in param[2] and '.' in param[2]):
+                elif (param[2] and '"' not in param[2] and
+                      ('.' in param[2] and param[2].count('.') == 1)):
                     createdic[param[0]] = float(param[2])
         new_instance = HBNBCommand.classes[c_name](**createdic)
-        if os.getenv('HBNB_TYPE_STORAGE') == 'db':
-            storage.new(new_instance)
-        storage.save()
+        new_instance.save()
         print(new_instance.id)
 
     def help_create(self):
@@ -299,9 +297,14 @@ class HBNBCommand(cmd.Cmd):
         key = c_name + "." + c_id
 
         # determine if key is present
-        if key not in storage.all():
-            print("** no instance found **")
-            return
+        if os.getenv('HBNB_TYPE_STORAGE') == 'db':
+            if key not in storage.all(HBNBCommand.classes[c_name]):
+                print("** no instance found **")
+                return
+        else:
+            if key not in storage.all():
+                print("** no instance found **")
+                return
 
         # first determine if kwargs or args
         if '{' in args[2] and '}' in args[2] and type(eval(args[2])) is dict:
@@ -357,10 +360,7 @@ class HBNBCommand(cmd.Cmd):
                 # update dictionary with name, value pair
                 new_dict.__dict__.update({att_name: att_val})
 
-        if os.getenv('HBNB_TYPE_STORAGE') == 'db':
-            storage.save()
-        else:
-            new_dict.save()  # save updates to file
+        new_dict.save()  # save updates to file
 
     def help_update(self):
         """ Help information for the update class """
