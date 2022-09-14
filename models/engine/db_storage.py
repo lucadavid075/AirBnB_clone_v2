@@ -58,7 +58,7 @@ class DBStorage:
             for item in self.__session.query(cls).all():
                 key = cls.__class__.__name__ + '.' + item.id
                 new_dict[key] = item
-        self.__session.close()
+        # self.__session.close()
         return new_dict
 
     def new(self, obj):
@@ -75,7 +75,7 @@ class DBStorage:
     def save(self):
         """commit all changes"""
         self.__session.commit()
-        self.__session.close()
+        # self.__session.close()
 
     def delete(self, obj=None):
         """Delete object from database"""

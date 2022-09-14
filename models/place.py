@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 """ Place Module for HBNB project """
+import os
 from models.base_model import BaseModel, Base
 from sqlalchemy import Table, Column, Integer, Float, String, ForeignKey
 from models.city import City
@@ -30,7 +31,7 @@ class Place(BaseModel, Base):
     longitude = Column(Float, nullable=True)
     amenity_ids = []
     amenities = relationship(
-        "Amenity", secondary=place_amenity, backref='amenities',
+        "Amenity", secondary=place_amenity, back_populates='place_amenities',
         viewonly=False)
     reviews = relationship("Review")
 
@@ -40,29 +41,30 @@ class Place(BaseModel, Base):
         from models.amenity import Amenity
         super().__init__(*args, **kwargs)
 
-    @property
-    def reviews(self):
-        """Get reviews from FileStorage"""
-        from models.review import Review
-        from models import storage
-        review_dict = storage.all(Review)
-        review_list = list(review_dict.values())
-        return [review for review in review_list
-                if review.place_id == self.id]
+    if os.getenv('HBNB_TYPE_STORAGE') != 'db':
+        @property
+        def reviews(self):
+            """Get reviews from FileStorage"""
+            from models.review import Review
+            from models import storage
+            review_dict = storage.all(Review)
+            review_list = list(review_dict.values())
+            return [review for review in review_list
+                    if review.place_id == self.id]
 
-    @property
-    def amenities(self):
-        """Get amenities from FileStorage"""
-        from models.amenity import Amenity
-        from models import storage
-        amenity_dict = storage.all(Amenity)
-        amenity_list = list(amenity_dict.values())
-        return [amenity for amenity in amenity_list
-                if amenity.id in self.amenity_ids]
+        @property
+        def amenities(self):
+            """Get amenities from FileStorage"""
+            from models.amenity import Amenity
+            from models import storage
+            amenity_dict = storage.all(Amenity)
+            amenity_list = list(amenity_dict.values())
+            return [amenity for amenity in amenity_list
+                    if amenity.id in self.amenity_ids]
 
-    @amenities.setter
-    def amenities(self, obj):
-        """Set amenities to class attrib"""
-        from models.amenity import Amenity
-        if isinstance(obj, Amenity):
-            self.amenities.append(obj.id)
+        @amenities.setter
+        def amenities(self, obj):
+            """Set amenities to class attrib"""
+            from models.amenity import Amenity
+            if isinstance(obj, Amenity):
+                self.amenities.append(obj.id)

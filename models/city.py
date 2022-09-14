@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 """ City Module for HBNB project """
+import os
 from models.base_model import BaseModel, Base
 from sqlalchemy import Column, String, ForeignKey
 from models.state import State
@@ -18,11 +19,12 @@ class City(BaseModel, Base):
         from models.place import Place
         super().__init__(*args, **kwargs)
 
-    @property
-    def places(self):
-        """Get places for FileStorage"""
-        from models.place import Place
-        from models import storage
-        place_dict = storage.all(Place)
-        place_list = list(place_dict.values())
-        return [place for place in place_list if place.city_id == self.id]
+    if os.getenv('HBNB_TYPE_STORAGE') != 'db':
+        @property
+        def places(self):
+            """Get places for FileStorage"""
+            from models.place import Place
+            from models import storage
+            place_dict = storage.all(Place)
+            place_list = list(place_dict.values())
+            return [place for place in place_list if place.city_id == self.id]
