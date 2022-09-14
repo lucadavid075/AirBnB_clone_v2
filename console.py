@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 """ Console Module """
 import cmd
+import os
 import sys
 import shlex
 from models.base_model import BaseModel
@@ -138,12 +139,10 @@ class HBNBCommand(cmd.Cmd):
                 elif (param[2] and '"' not in param[2] and '.' in param[2]):
                     createdic[param[0]] = float(param[2])
         new_instance = HBNBCommand.classes[c_name](**createdic)
-        # if createdic != {}:
-        #     for k, v in createdic.items():
-        #         setattr(new_instance, k, v)
+        if os.getenv('HBNB_TYPE_STORAGE') == 'db':
+            storage.new(new_instance)
         storage.save()
         print(new_instance.id)
-        storage.save()
 
     def help_create(self):
         """ Help information for the create method """
@@ -174,7 +173,11 @@ class HBNBCommand(cmd.Cmd):
 
         key = c_name + "." + c_id
         try:
-            print(storage._FileStorage__objects[key])
+            if os.getenv('HBNB_TYPE_STORAGE') == 'db':
+                showdict = storage.all(HBNBCommand.classes[c_name])
+                print(showdict[key])
+            else:
+                print(storage._FileStorage__objects[key])
         except KeyError:
             print("** no instance found **")
 
@@ -206,7 +209,11 @@ class HBNBCommand(cmd.Cmd):
         key = c_name + "." + c_id
 
         try:
-            del(storage.all()[key])
+            if os.getenv('HBNB_TYPE_STORAGE') == 'db':
+                showdict = storage.all(HBNBCommand.classes[c_name])
+                storage.delete(showdict[key])
+            else:
+                del(storage.all()[key])
             storage.save()
         except KeyError:
             print("** no instance found **")
@@ -225,12 +232,21 @@ class HBNBCommand(cmd.Cmd):
             if args not in HBNBCommand.classes:
                 print("** class doesn't exist **")
                 return
-            for k, v in storage._FileStorage__objects.items():
-                if k.split('.')[0] == args:
+
+            if os.getenv('HBNB_TYPE_STORAGE') == 'db':
+                for k, v in storage.all(HBNBCommand.classes[args]).items():
                     print_list.append(str(v))
+            else:
+                for k, v in storage._FileStorage__objects.items():
+                    if k.split('.')[0] == args:
+                        print_list.append(str(v))
         else:
-            for k, v in storage._FileStorage__objects.items():
-                print_list.append(str(v))
+            if os.getenv('HBNB_TYPE_STORAGE') == 'db':
+                for k, v in storage.all().items():
+                    print_list.append(str(v))
+            else:
+                for k, v in storage._FileStorage__objects.items():
+                    print_list.append(str(v))
 
         print(print_list)
 
@@ -242,9 +258,13 @@ class HBNBCommand(cmd.Cmd):
     def do_count(self, args):
         """Count current number of class instances"""
         count = 0
-        for k, v in storage._FileStorage__objects.items():
-            if args == k.split('.')[0]:
+        if os.getenv('HBNB_TYPE_STORAGE') == 'db':
+            for k, v in storage.all(HBNBCommand.classes[args]).items():
                 count += 1
+        else:
+            for k, v in storage._FileStorage__objects.items():
+                if args == k.split('.')[0]:
+                    count += 1
         print(count)
 
     def help_count(self):
@@ -312,7 +332,11 @@ class HBNBCommand(cmd.Cmd):
             args = [att_name, att_val]
 
         # retrieve dictionary of current objects
-        new_dict = storage.all()[key]
+        if os.getenv('HBNB_TYPE_STORAGE') == 'db':
+            showdict = storage.all(HBNBCommand.classes[c_name])
+            new_dict = showdict[key]
+        else:
+            new_dict = storage.all()[key]
 
         # iterate through attr names and values
         for i, att_name in enumerate(args):
@@ -332,7 +356,10 @@ class HBNBCommand(cmd.Cmd):
                 # update dictionary with name, value pair
                 new_dict.__dict__.update({att_name: att_val})
 
-        new_dict.save()  # save updates to file
+        if os.getenv('HBNB_TYPE_STORAGE') == 'db':
+            storage.save()
+        else:
+            new_dict.save()  # save updates to file
 
     def help_update(self):
         """ Help information for the update class """
