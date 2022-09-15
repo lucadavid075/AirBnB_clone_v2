@@ -18,18 +18,3 @@ class City(BaseModel, Base):
     else:
         name = ""
         state_id = ""
-
-    def __init__(self, *args, **kwargs):
-        """Instatntiates a new model"""
-        from models.place import Place
-        super().__init__(*args, **kwargs)
-
-    if os.getenv('HBNB_TYPE_STORAGE') != 'db':
-        @property
-        def places(self):
-            """Get places for FileStorage"""
-            from models.place import Place
-            from models import storage
-            place_dict = storage.all(Place)
-            place_list = list(place_dict.values())
-            return [place for place in place_list if place.city_id == self.id]

@@ -63,9 +63,11 @@ class Place(BaseModel, Base):
             from models.review import Review
             from models import storage
             review_dict = storage.all(Review)
-            review_list = list(review_dict.values())
-            return [review for review in review_list
-                    if review.place_id == self.id]
+            review_list = []
+            for review in review_dict.values():
+                if review.place_id == self.id:
+                    review_list.append(review)
+            return review_list
 
         @property
         def amenities(self):
@@ -73,9 +75,11 @@ class Place(BaseModel, Base):
             from models.amenity import Amenity
             from models import storage
             amenity_dict = storage.all(Amenity)
-            amenity_list = list(amenity_dict.values())
-            return [amenity for amenity in amenity_list
-                    if amenity.id in self.amenity_ids]
+            amenity_list = []
+            for amenity in amenity_dict.values():
+                if amenity.id in self.amenity_ids:
+                    amenity_list.append(amenity)
+            return amenity_list
 
         @amenities.setter
         def amenities(self, obj):
