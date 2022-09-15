@@ -139,7 +139,13 @@ class HBNBCommand(cmd.Cmd):
                 elif (param[2] and '"' not in param[2] and
                       ('.' in param[2] and param[2].count('.') == 1)):
                     createdic[param[0]] = float(param[2])
-        new_instance = HBNBCommand.classes[c_name](**createdic)
+        if os.getenv('HBNB_TYPE_STORAGE') == 'db':
+            new_instance = HBNBCommand.classes[c_name](**createdic)
+        else:
+            new_instance = HBNBCommand.classes[c_name]()
+            if createdic != {}:
+                for k, v in createdic.items():
+                    setattr(new_instance, k, v)
         new_instance.save()
         print(new_instance.id)
 
