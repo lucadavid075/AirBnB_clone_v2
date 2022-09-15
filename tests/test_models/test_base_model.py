@@ -85,7 +85,7 @@ class test_basemodel(unittest.TestCase):
         n = {'name': 'test'}
         with self.assertRaises(TypeError):
             new = self.value(**n)
-        self.assertEqual(new.name, n['name'])
+            self.assertEqual(new.name, n['name'])
 
     def test_id(self):
         """ """
