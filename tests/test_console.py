@@ -201,6 +201,7 @@ class TestHBNBCommand(unittest.TestCase):
         """
         with patch('sys.stdout', new=StringIO()) as cout:
             cons = HBNBCommand()
+            storage.all().clear()
             # no objects
             cmd_line = cons.precmd('User.count()')
             cons.onecmd(cmd_line)
