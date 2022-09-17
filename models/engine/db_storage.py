@@ -58,7 +58,7 @@ class DBStorage:
             for item in self.__session.query(cls).all():
                 key = "{}.{}".format(item.__class__.__name__,  item.id)
                 new_dict[key] = item
-        self.__session.close()
+        # self.__session.close()
         return new_dict
 
     def new(self, obj):
