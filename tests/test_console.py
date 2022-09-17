@@ -382,5 +382,39 @@ class TestHBNBCommandDB(unittest.TestCase):
         cursor.execute('SELECT * FROM cities WHERE id="{}"'.format(c_id))
         result = cursor.fetchone()
         self.assertIn('San Francisco', result)
+
+        cursor.execute('SELECT * FROM places')
+        result = cursor.fetchall()
+        no_places = len(result)
+        with patch('sys.stdout', new=StringIO()) as cout:
+            cons = HBNBCommand()
+            # creating a User instance
+            cons.onecmd(
+                'create User email="my@me.com" password="pwd" first_name="FN"\
+                     last_name="LN"')
+            u_id = cout.getvalue().strip()
+            # showing a User instance
+            clear_stream(cout)
+        dbc.commit()
+        with patch('sys.stdout', new=StringIO()) as cout:
+            cons = HBNBCommand()
+            # creating a place instance
+            cons.onecmd(
+                'create Place city_id="{}" user_id="{}" name="My_house"\
+                     description="no_description_yet" number_rooms=4\
+                         number_bathrooms=1 max_guest=3 price_by_night=100\
+                             latitude=120.12 longitude=101.4'.format(
+                    c_id, u_id))
+            # showing a place instance
+            p_id = cout.getvalue().strip()
+            clear_stream(cout)
+        cursor.execute('SELECT * FROM places')
+        result = cursor.fetchall()
+        self.assertTrue(no_places + 1, len(result))
         cursor.close()
         dbc.close()
+        with patch('sys.stdout', new=StringIO()) as cout:
+            cons = HBNBCommand()
+            cmd_line = cons.precmd('Place.show({})'.format(p_id))
+            cons.onecmd(cmd_line)
+            self.assertIn(p_id, cout.getvalue())
