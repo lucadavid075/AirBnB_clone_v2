@@ -58,7 +58,7 @@ class DBStorage:
             for item in self.__session.query(cls).all():
                 key = "{}.{}".format(item.__class__.__name__,  item.id)
                 new_dict[key] = item
-        # self.__session.close()
+        self.close()
         return new_dict
 
     def new(self, obj):
@@ -99,3 +99,7 @@ class DBStorage:
             bind=self.__engine, expire_on_commit=False)
         Session = scoped_session(session_factory)
         self.__session = Session()
+
+    def close(self):
+        """Remove private session attribute"""
+        self.__session.close()
