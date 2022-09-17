@@ -4,12 +4,19 @@
 import json
 import os
 import unittest
+import MySQLdb
 from io import StringIO
 from unittest.mock import patch
 
 from console import HBNBCommand
 from models import storage
 from models.base_model import BaseModel
+from models.user import User
+from models.place import Place
+from models.state import State
+from models.city import City
+from models.amenity import Amenity
+from models.review import Review
 
 
 @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db',
@@ -308,3 +315,72 @@ class TestHBNBCommand(unittest.TestCase):
             else:
                 self.assertIn("'password': 12345", user_info)
             clear_stream(cout)
+
+
+@unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db',
+                 'db_storage test not supported')
+class TestHBNBCommandDB(unittest.TestCase):
+    """Represents the test class for the HBNBCommand class.
+    """
+
+    def test_state(self):
+        from tests import clear_stream
+        """ New state is correctly added to database """
+        dbc = MySQLdb.connect(
+            host=os.getenv('HBNB_MYSQL_HOST'),
+            port=3306,
+            user=os.getenv('HBNB_MYSQL_USER'),
+            passwd=os.getenv('HBNB_MYSQL_PWD'),
+            db=os.getenv('HBNB_MYSQL_DB')
+        )
+        cursor = dbc.cursor()
+        cursor.execute('SELECT * FROM states')
+        result = cursor.fetchall()
+        no_states = len(result)
+        dbc.commit()
+        with patch('sys.stdout', new=StringIO()) as cout:
+            cons = HBNBCommand()
+            # creating a State instance
+            cons.onecmd('create State name="California"')
+            s_id = cout.getvalue().strip()
+            # showing a State instance
+            clear_stream(cout)
+        cursor.execute('SELECT * FROM states')
+        result = cursor.fetchall()
+        self.assertTrue(no_states + 1, len(result))
+
+        cursor.execute('SELECT * FROM cities')
+        result = cursor.fetchall()
+        no_cities = len(result)
+        dbc.commit()
+        with patch('sys.stdout', new=StringIO()) as cout:
+            cons = HBNBCommand()
+            # creating a City instance
+            cons.onecmd(
+                'create City state_id="{}" name="Fremont"'.format(s_id))
+            # showing a City instance
+            clear_stream(cout)
+        cursor.execute('SELECT * FROM cities')
+        result = cursor.fetchall()
+        self.assertTrue(no_cities + 1, len(result))
+
+        cursor.execute('SELECT * FROM cities')
+        result = cursor.fetchall()
+        no_cities = len(result)
+        dbc.commit()
+        with patch('sys.stdout', new=StringIO()) as cout:
+            cons = HBNBCommand()
+            # creating a City instance
+            cons.onecmd(
+                'create City state_id="{}" name="San_Francisco"'.format(s_id))
+            c_id = cout.getvalue().strip()
+            # showing a City instance
+            clear_stream(cout)
+        cursor.execute('SELECT * FROM cities')
+        result = cursor.fetchall()
+        self.assertTrue(no_cities + 1, len(result))
+        cursor.execute('SELECT * FROM cities WHERE id="{}"'.format(c_id))
+        result = cursor.fetchone()
+        self.assertIn('San Francisco', result)
+        cursor.close()
+        dbc.close()
